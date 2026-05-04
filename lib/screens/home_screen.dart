@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/mock_data.dart';
 import '../models/pokemon.dart';
+import '../main.dart';
 import 'detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -52,13 +53,20 @@ class _HomeScreenState extends State<HomeScreen> {
     if (type.contains('Steel')) return const Color(0xFF6C7A8F);
     if (type.contains('Normal')) return const Color(0xFF7A7A5A);
     if (type.contains('Poison')) return const Color(0xFF8B5CF6);
+    if (type.contains('Flying')) return const Color(0xFF81B9EF);
+    if (type.contains('Ice')) return const Color(0xFF66CCFF);
+    if (type.contains('Ground')) return const Color(0xFFD3B357);
+    if (type.contains('Bug')) return const Color(0xFFA8B820);
+    if (type.contains('Fairy')) return const Color(0xFFEE99AC);
     return const Color(0xFF6B7280);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F7),
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF2F2F7),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,15 +77,33 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Pokedex',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1C1C1E),
-                      letterSpacing: -0.5,
-                    ),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Align(
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Pokedex',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : const Color(0xFF1C1C1E),
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        child: IconButton(
+                          icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+                          color: isDark ? Colors.white : const Color(0xFF1C1C1E),
+                          onPressed: () {
+                            themeNotifier.value = isDark ? ThemeMode.light : ThemeMode.dark;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -90,11 +116,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   // ── Search Bar ──
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
+                          color: isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.06),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         ),
@@ -102,8 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: TextField(
                       controller: _searchController,
-                      style: const TextStyle(
-                          fontSize: 15, color: Color(0xFF1C1C1E)),
+                      style: TextStyle(
+                          fontSize: 15, color: isDark ? Colors.white : const Color(0xFF1C1C1E)),
                       decoration: InputDecoration(
                         hintText: 'Cari nama atau tipe Pokémon...',
                         hintStyle: const TextStyle(
@@ -202,6 +228,7 @@ class _PokemonGridCardState extends State<_PokemonGridCard> {
   Widget build(BuildContext context) {
     final color = widget.color;
     final pokemon = widget.pokemon;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -216,13 +243,13 @@ class _PokemonGridCardState extends State<_PokemonGridCard> {
           child: AnimatedContainer(
             duration: Duration.zero,
             decoration: BoxDecoration(
-              color: _hovered ? color.withOpacity(0.08) : Colors.white,
+              color: _hovered ? color.withOpacity(0.08) : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
                   color: _hovered
                       ? color.withOpacity(0.25)
-                      : Colors.black.withOpacity(0.05),
+                      : (isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.05)),
                   blurRadius: _hovered ? 24 : 10,
                   spreadRadius: _hovered ? 1 : 0,
                   offset: _hovered ? const Offset(0, 8) : const Offset(0, 3),
@@ -263,27 +290,32 @@ class _PokemonGridCardState extends State<_PokemonGridCard> {
                       children: [
                         Text(
                           pokemon.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
-                            color: Color(0xFF1C1C1E),
+                            color: isDark ? Colors.white : const Color(0xFF1C1C1E),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                              horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(8),
+                            color: color.withOpacity(isDark ? 0.2 : 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: color.withOpacity(0.3),
+                              width: 1,
+                            ),
                           ),
                           child: Text(
-                            pokemon.type,
+                            pokemon.type.toUpperCase(),
                             style: TextStyle(
-                                color: color,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600),
+                                color: isDark ? Colors.white : color,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),

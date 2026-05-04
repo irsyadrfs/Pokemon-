@@ -20,7 +20,34 @@ class DetailScreen extends StatelessWidget {
     if (type.contains('Steel')) return const Color(0xFF6C7A8F);
     if (type.contains('Normal')) return const Color(0xFF7A7A5A);
     if (type.contains('Poison')) return const Color(0xFF8B5CF6);
+    if (type.contains('Flying')) return const Color(0xFF81B9EF);
+    if (type.contains('Ice')) return const Color(0xFF66CCFF);
+    if (type.contains('Ground')) return const Color(0xFFD3B357);
+    if (type.contains('Bug')) return const Color(0xFFA8B820);
+    if (type.contains('Fairy')) return const Color(0xFFEE99AC);
     return const Color(0xFF6B7280);
+  }
+
+  String _typeEmoji(String type) {
+    if (type.contains('Fire')) return '🔥';
+    if (type.contains('Water')) return '💧';
+    if (type.contains('Grass')) return '🌿';
+    if (type.contains('Electric')) return '⚡';
+    if (type.contains('Ghost')) return '👻';
+    if (type.contains('Dragon')) return '🐉';
+    if (type.contains('Fighting')) return '🥊';
+    if (type.contains('Psychic')) return '🔮';
+    if (type.contains('Rock')) return '🪨';
+    if (type.contains('Dark')) return '🌑';
+    if (type.contains('Steel')) return '⚙️';
+    if (type.contains('Normal')) return '⭐';
+    if (type.contains('Poison')) return '☠️';
+    if (type.contains('Flying')) return '🦅';
+    if (type.contains('Ice')) return '❄️';
+    if (type.contains('Bug')) return '🐛';
+    if (type.contains('Ground')) return '🌍';
+    if (type.contains('Fairy')) return '✨';
+    return '🔹';
   }
 
   Map<String, int> _parseStats(String stats) {
@@ -62,17 +89,20 @@ class DetailScreen extends StatelessWidget {
     }
   }
 
-  Widget _sectionCard({
+  Widget _sectionCard(
+    BuildContext context, {
     required String emoji,
     required String title,
     required Color color,
     required Widget child,
     bool gradient = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: gradient ? null : Colors.white,
+        color: gradient ? null : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
         gradient: gradient
             ? LinearGradient(
                 colors: [color.withOpacity(0.18), color.withOpacity(0.04)],
@@ -85,7 +115,7 @@ class DetailScreen extends StatelessWidget {
           BoxShadow(
             color: gradient
                 ? color.withOpacity(0.12)
-                : Colors.black.withOpacity(0.04),
+                : (isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.04)),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -122,8 +152,9 @@ class DetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _statsSection(String stats, Color color) {
+  Widget _statsSection(BuildContext context, String stats, Color color) {
     final parsed = _parseStats(stats);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     const maxStat = 160.0;
     const emojis = {
       'HP': '❤️',
@@ -149,10 +180,10 @@ class DetailScreen extends StatelessWidget {
                         style: const TextStyle(fontSize: 12)),
                     const SizedBox(width: 6),
                     Text(e.key,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF6B7280))),
+                            color: isDark ? const Color(0xFFAAAAAA) : const Color(0xFF6B7280))),
                   ]),
                   Text('${e.value}',
                       style: TextStyle(
@@ -212,7 +243,9 @@ class DetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _descriptionCard(String description, String role, Color color) {
+  Widget _descriptionCard(BuildContext context, String description, String role, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -268,7 +301,7 @@ class DetailScreen extends StatelessWidget {
                 Text(description,
                     style: TextStyle(
                         fontSize: 14,
-                        color: color.withOpacity(0.85),
+                        color: isDark ? Colors.white.withOpacity(0.85) : color.withOpacity(0.85),
                         height: 1.65,
                         fontStyle: FontStyle.italic,
                         fontWeight: FontWeight.w500)),
@@ -298,12 +331,68 @@ class DetailScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildWeaknessChips(BuildContext context, String weaknessString) {
+    if (weaknessString == '-' || weaknessString.isEmpty) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      return Text('Tidak ada kelemahan khusus', 
+          style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : const Color(0xFF3C3C43)));
+    }
+
+    final weaknesses = weaknessString.split(',').map((s) => s.trim()).toList();
+    
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: weaknesses.map((w) {
+        final baseType = w.split(' ')[0];
+        final typeColor = _typeColor(baseType);
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: typeColor.withOpacity(isDark ? 0.25 : 0.12),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: typeColor.withOpacity(isDark ? 0.5 : 0.4),
+              width: 1.5,
+            ),
+            boxShadow: isDark ? [] : [
+              BoxShadow(
+                color: typeColor.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_typeEmoji(baseType), style: const TextStyle(fontSize: 14)),
+              const SizedBox(width: 8),
+              Text(
+                w.toUpperCase(),
+                style: TextStyle(
+                  color: isDark ? Colors.white : typeColor.withRed((typeColor.red * 0.8).toInt()).withGreen((typeColor.green * 0.8).toInt()).withBlue((typeColor.blue * 0.8).toInt()),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = _typeColor(pokemon.type);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F7),
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF2F2F7),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -321,26 +410,26 @@ class DetailScreen extends StatelessWidget {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                           borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.black.withOpacity(0.06),
+                                color: isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.06),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2))
                           ],
                         ),
-                        child: const Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 16, color: Color(0xFF1C1C1E)),
+                        child: Icon(Icons.arrow_back_ios_new_rounded,
+                            size: 16, color: isDark ? Colors.white : const Color(0xFF1C1C1E)),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(pokemon.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF1C1C1E),
+                              color: isDark ? Colors.white : const Color(0xFF1C1C1E),
                               letterSpacing: -0.3),
                           overflow: TextOverflow.ellipsis),
                     ),
@@ -404,47 +493,54 @@ class DetailScreen extends StatelessWidget {
   }
 
   // Mobile: single column
-  List<Widget> _buildNarrowLayout(BuildContext context, Color color) => [
-        _descriptionCard(pokemon.description, pokemon.role, color),
+  List<Widget> _buildNarrowLayout(BuildContext context, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return [
+        _descriptionCard(context, pokemon.description, pokemon.role, color),
         const SizedBox(height: 12),
         _sectionCard(
+          context,
           emoji: '📊',
           title: 'Base Stats',
           color: const Color(0xFF3DAD72),
-          child: _statsSection(pokemon.stats, const Color(0xFF3DAD72)),
+          child: _statsSection(context, pokemon.stats, const Color(0xFF3DAD72)),
         ),
         const SizedBox(height: 12),
         _sectionCard(
+          context,
           emoji: '⚠️',
           title: 'Weakness',
           color: const Color(0xFFC0392B),
-          child: Text(pokemon.weakness,
-              style: const TextStyle(
-                  fontSize: 14, color: Color(0xFF3C3C43), height: 1.5)),
+          child: _buildWeaknessChips(context, pokemon.weakness),
         ),
         const SizedBox(height: 12),
         _sectionCard(
+          context,
           emoji: '🤝',
           title: 'Partner Terbaik',
           color: const Color(0xFFE8603C),
           child: _partnerCards(context, pokemon.partners),
         ),
       ];
+  }
 
   // Wide (web/tablet): 2-column layout
-  List<Widget> _buildWideLayout(BuildContext context, Color color) => [
+  List<Widget> _buildWideLayout(BuildContext context, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return [
         IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: _descriptionCard(pokemon.description, pokemon.role, color)),
+              Expanded(child: _descriptionCard(context, pokemon.description, pokemon.role, color)),
               const SizedBox(width: 12),
               Expanded(
                 child: _sectionCard(
+                  context,
                   emoji: '📊',
                   title: 'Base Stats',
                   color: const Color(0xFF3DAD72),
-                  child: _statsSection(pokemon.stats, const Color(0xFF3DAD72)),
+                  child: _statsSection(context, pokemon.stats, const Color(0xFF3DAD72)),
                 ),
               ),
             ],
@@ -457,19 +553,17 @@ class DetailScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: _sectionCard(
+                  context,
                   emoji: '⚠️',
                   title: 'Weakness',
                   color: const Color(0xFFC0392B),
-                  child: Text(pokemon.weakness,
-                      style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF3C3C43),
-                          height: 1.5)),
+                  child: _buildWeaknessChips(context, pokemon.weakness),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _sectionCard(
+                  context,
                   emoji: '🤝',
                   title: 'Partner Terbaik',
                   color: const Color(0xFFE8603C),
@@ -480,6 +574,7 @@ class DetailScreen extends StatelessWidget {
           ),
         ),
       ];
+  }
 }
 
 // ── Partner Card (hoverable) ──
